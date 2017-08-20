@@ -2,5 +2,9 @@
 
 
 dependencies {
+    compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
 
+    testCompile 'org.springframework:spring-test:4.3.10.RELEASE'
+    testCompile "org.mockito:mockito-core:2.8.47"
+    testCompile "org.assertj:assertj-core:3.8.0"
 }
