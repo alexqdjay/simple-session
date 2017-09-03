@@ -16,6 +16,16 @@ public class SimpleSessionFilter implements Filter {
             SimpleSessionFilter.class.getName().concat(".VISITED");
 
 
+    private SessionRepository sessionRepository;
+
+    public SessionRepository getSessionRepository() {
+        return sessionRepository;
+    }
+
+    public void setSessionRepository(SessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
+    }
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -32,9 +42,14 @@ public class SimpleSessionFilter implements Filter {
         if (visited) {
             chain.doFilter(request, response);
         } else {
+            SimpleSessionRequest sessionRequest = new SimpleSessionRequest(servletRequest);
+            sessionRequest.setSessionRepository(sessionRepository);
+            SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse);
+            sessionResponse.sessionRepository = sessionRepository;
+
             servletRequest.setAttribute(ALREADY_VISITED_NAME, Boolean.TRUE);
-            chain.doFilter(new SimpleSessionRequest(servletRequest),
-                    new SimpleSessionResponse(servletResponse));
+
+            chain.doFilter(sessionRequest, sessionResponse);
         }
     }
 

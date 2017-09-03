@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServletResponseWrapper;
  * Created by alexqdjay on 2017/8/20.
  */
 public class SimpleSessionResponse extends HttpServletResponseWrapper {
+
+    SessionRepository sessionRepository;
+
     /**
      * Constructs a response adaptor wrapping the given response.
      *
