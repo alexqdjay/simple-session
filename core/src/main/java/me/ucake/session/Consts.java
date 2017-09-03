@@ -14,9 +14,11 @@ public interface Consts {
         String EXPIRES_PREFIX = SIMPLE_SESSION_PREFIX + "expires_%s";         // 用于过期标识
         String EXPIRATIONS_PREFIX = SIMPLE_SESSION_PREFIX + "expirations_%s"; // 存储过期时刻与sessionId列表
 
-        String FIELD_CREATE_TIME_NAME =  String.format(FIELDS_PREFIX, "createTime");
-        String FIELD_LAST_ACCESS_TIME_NAME =  String.format(FIELDS_PREFIX, "lastAccessTime");
-        String FIELD_MAX_INACTIVE_INTERVAL_NAME =  String.format(FIELDS_PREFIX, "maxInactiveInterval");
+        String SESSION_ATTR_PREFIX = "attr_";
+
+        String FIELD_CREATE_TIME_NAME =  "createTime";
+        String FIELD_LAST_ACCESS_TIME_NAME =  "lastAccessTime";
+        String FIELD_MAX_INACTIVE_INTERVAL_NAME =  "maxInactiveInterval";
 
     }
 

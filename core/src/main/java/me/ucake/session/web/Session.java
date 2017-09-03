@@ -7,10 +7,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static me.ucake.session.Consts.RedisFields.*;
 
@@ -54,6 +51,7 @@ public class Session implements Serializable, HttpSession {
     private Map<String, Object> cached = new HashMap<>();
     private boolean isNew = false;
     private FlushMode flushMode;
+    private boolean invalidated = false;
 
     private ServletContext servletContext;
 
@@ -67,6 +65,7 @@ public class Session implements Serializable, HttpSession {
         session.cached.put(FIELD_CREATE_TIME_NAME, session.createTime);
         session.cached.put(FIELD_LAST_ACCESS_TIME_NAME, session.lastAccessTime);
         session.cached.put(FIELD_MAX_INACTIVE_INTERVAL_NAME, session.maxInactiveInterval);
+        session.flushToRepository();
         return session;
     }
 
@@ -76,6 +75,7 @@ public class Session implements Serializable, HttpSession {
 
     @Override
     public long getCreationTime() {
+        checkState();
         return this.createTime;
     }
 
@@ -86,6 +86,7 @@ public class Session implements Serializable, HttpSession {
 
     @Override
     public long getLastAccessedTime() {
+        checkState();
         return this.lastAccessTime;
     }
 
@@ -111,64 +112,94 @@ public class Session implements Serializable, HttpSession {
 
     @Override
     public Object getAttribute(String name) {
+        checkState();
         return attributes.get(name);
     }
 
     @Override
     public Object getValue(String name) {
+        checkState();
         return attributes.get(name);
     }
 
     @Override
     public Enumeration<String> getAttributeNames() {
-        return null;
+        checkState();
+        Iterator<String> namesItor = attributes.keySet().iterator();
+        Enumeration<String> enumeration = new Enumeration<String>() {
+            @Override
+            public boolean hasMoreElements() {
+                return namesItor.hasNext();
+            }
+
+            @Override
+            public String nextElement() {
+                return namesItor.next();
+            }
+        };
+        return enumeration;
     }
 
     @Override
     public String[] getValueNames() {
-        return new String[0];
+        checkState();
+        Set<String> names = attributes.keySet();
+        return names.toArray(new String[0]);
     }
 
     @Override
     public void setAttribute(String name, Object value) {
-
+        checkState();
+        this.attributes.put(name, value);
+        this.putAndFlush(name, value);
     }
 
     @Override
     public void putValue(String name, Object value) {
-
+        this.setAttribute(name, value);
     }
 
     @Override
     public void removeAttribute(String name) {
-
+        this.setAttribute(name, null);
     }
 
     @Override
     public void removeValue(String name) {
-
+        this.removeAttribute(name);
     }
 
     @Override
     public void invalidate() {
-
+        checkState();
     }
 
     @Override
     public boolean isNew() {
+        checkState();
         return this.isNew;
     }
 
     public void hasAccessed() {
+        checkState();
         this.lastAccessTime = System.currentTimeMillis();
     }
 
-    public void updateToRepository() {
+    private void flushToRepository() {
         if (this.flushMode == FlushMode.LAZY) {
             return;
         }
-        for (Map.Entry<String, Object> entry : cached.entrySet()) {
+        this.sessionRepository.saveAttributes(this.id, this.cached);
+    }
 
+    private void putAndFlush(String name, Object value) {
+        this.cached.put(name, value);
+        this.flushToRepository();
+    }
+
+    private void checkState() {
+        if (this.invalidated) {
+            throw new IllegalStateException("The Session is invalidated!");
         }
     }
 

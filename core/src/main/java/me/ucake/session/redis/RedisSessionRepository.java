@@ -1,5 +1,6 @@
 package me.ucake.session.redis;
 
+import me.ucake.session.Consts;
 import me.ucake.session.web.Session;
 import me.ucake.session.web.SessionRepository;
 
@@ -25,6 +26,10 @@ public class RedisSessionRepository implements SessionRepository {
 
     @Override
     public void saveAttributes(String sessionId, Map<String, Object> attributes) {
-        redisTemplate.hmset(sessionId, attributes);
+        redisTemplate.hmset(sessionIdKey(sessionId), attributes);
+    }
+
+    private String sessionIdKey(String sessionId) {
+        return String.format(Consts.RedisFields.FIELDS_PREFIX, sessionId);
     }
 }
