@@ -210,4 +210,7 @@ public class Session implements Serializable, HttpSession {
         return flushMode;
     }
 
+    public void setSessionRepository(SessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
+    }
 }
