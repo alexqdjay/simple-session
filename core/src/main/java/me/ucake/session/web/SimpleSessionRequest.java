@@ -48,6 +48,8 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
 
         session = sessionRepository.createSession(getServletContext());
 
+        this.setCurrentSession(session);
+
         return session;
     }
 
@@ -72,12 +74,16 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
     }
 
 
-    public Session getCurrentSession() {
+    private Session getCurrentSession() {
         Object tmp = this.getAttribute(Consts.RequestAttributes.ATTR_CURRENT_SESSION);
         if (tmp == null) {
             return null;
         }
         return (Session)tmp;
+    }
+
+    public void setCurrentSession(Session session) {
+        this.setAttribute(Consts.RequestAttributes.ATTR_CURRENT_SESSION, session);
     }
 
     public void setSessionRepository(SessionRepository sessionRepository) {

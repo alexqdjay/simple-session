@@ -2,6 +2,7 @@ package me.ucake.session.web;
 
 
 import me.ucake.session.FlushMode;
+import me.ucake.session.core.UUIDGen;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
@@ -59,6 +60,7 @@ public class Session implements Serializable, HttpSession {
 
     public static Session createNew(ServletContext servletContext, FlushMode flushMode) {
         Session session = new Session(flushMode);
+        session.id = UUIDGen.gen();
         session.servletContext = servletContext;
         session.createTime = session.lastAccessTime = System.currentTimeMillis();
         session.isNew = true;
@@ -172,6 +174,7 @@ public class Session implements Serializable, HttpSession {
     @Override
     public void invalidate() {
         checkState();
+        this.invalidated = true;
     }
 
     @Override
