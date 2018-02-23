@@ -58,7 +58,8 @@ public class Session implements Serializable, HttpSession {
 
     private SessionRepository sessionRepository;
 
-    public static Session createNew(ServletContext servletContext, FlushMode flushMode) {
+    public static Session createNew(ServletContext servletContext, FlushMode flushMode,
+                                    SessionRepository sessionRepository) {
         Session session = new Session(flushMode);
         session.id = UUIDGen.gen();
         session.servletContext = servletContext;
@@ -67,6 +68,7 @@ public class Session implements Serializable, HttpSession {
         session.cached.put(FIELD_CREATE_TIME_NAME, session.createTime);
         session.cached.put(FIELD_LAST_ACCESS_TIME_NAME, session.lastAccessTime);
         session.cached.put(FIELD_MAX_INACTIVE_INTERVAL_NAME, session.maxInactiveInterval);
+        session.setSessionRepository(sessionRepository);
         session.flushToRepository();
         return session;
     }
@@ -210,7 +212,7 @@ public class Session implements Serializable, HttpSession {
         return flushMode;
     }
 
-    public void setSessionRepository(SessionRepository sessionRepository) {
+    private void setSessionRepository(SessionRepository sessionRepository) {
         this.sessionRepository = sessionRepository;
     }
 }

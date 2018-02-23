@@ -16,16 +16,20 @@ public class RedisSessionRepository implements SessionRepository {
     private RedisTemplate redisTemplate;
     private FlushMode flushMode;
 
+    public RedisSessionRepository(RedisTemplate redisTemplate, FlushMode flushMode) {
+        this.redisTemplate = redisTemplate;
+        this.flushMode = flushMode;
+    }
+
     @Override
     public Session getSessionById(String sessionId) {
+        //TODO 补充getSessionById 实现
         return null;
     }
 
     @Override
     public Session createSession(ServletContext servletContext) {
-        Session newSession = Session.createNew(servletContext, flushMode);
-        newSession.setSessionRepository(this);
-        return newSession;
+        return Session.createNew(servletContext, flushMode, this);
     }
 
     @Override
@@ -37,11 +41,4 @@ public class RedisSessionRepository implements SessionRepository {
         return String.format(Consts.RedisFields.FIELDS_PREFIX, sessionId);
     }
 
-    public void setRedisTemplate(RedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
-    public void setFlushMode(FlushMode flushMode) {
-        this.flushMode = flushMode;
-    }
 }

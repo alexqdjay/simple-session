@@ -15,8 +15,18 @@ public class SimpleSessionFilter implements Filter {
     private static final String ALREADY_VISITED_NAME =
             SimpleSessionFilter.class.getName().concat(".VISITED");
 
+    private static final SessionTransaction DEFAULT_SESSION_TRANSACTION = new CookieBasedTransaction();
 
     private SessionRepository sessionRepository;
+    private SessionTransaction sessionTransaction = DEFAULT_SESSION_TRANSACTION;
+
+    public SessionTransaction getSessionTransaction() {
+        return sessionTransaction;
+    }
+
+    public void setSessionTransaction(SessionTransaction sessionTransaction) {
+        this.sessionTransaction = sessionTransaction;
+    }
 
     public SessionRepository getSessionRepository() {
         return sessionRepository;
@@ -44,6 +54,7 @@ public class SimpleSessionFilter implements Filter {
         } else {
             SimpleSessionRequest sessionRequest = new SimpleSessionRequest(servletRequest);
             sessionRequest.setSessionRepository(sessionRepository);
+            sessionRequest.setSessionTransaction(getSessionTransaction());
             SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse);
             sessionResponse.sessionRepository = sessionRepository;
 

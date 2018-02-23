@@ -20,7 +20,7 @@ public class SampleController {
     @RequestMapping("/echo")
     public void echo(@RequestParam String msg, HttpServletRequest request,
                        HttpServletResponse response) throws IOException, InterruptedException {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(true);
         System.out.println(request.getClass());
         System.out.println(request.isRequestedSessionIdFromURL());
         System.out.println(request.isRequestedSessionIdFromCookie());
