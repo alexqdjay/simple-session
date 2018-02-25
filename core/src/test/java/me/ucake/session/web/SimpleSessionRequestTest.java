@@ -1,6 +1,5 @@
 package me.ucake.session.web;
 
-import me.ucake.session.Consts;
 import me.ucake.session.jvm.MapSessionRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,6 +106,10 @@ public class SimpleSessionRequestTest {
             assertThat(request.isRequestedSessionIdValid()).isFalse();
 
             request.getSession(true);
+        });
+
+        nextRequest();
+        doInFilter((request, response) -> {
             assertThat(request.isRequestedSessionIdValid()).isTrue();
         });
     }
