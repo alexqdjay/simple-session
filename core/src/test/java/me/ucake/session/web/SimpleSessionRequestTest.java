@@ -45,7 +45,7 @@ public class SimpleSessionRequestTest {
     public void test_getSession() throws IOException, ServletException {
         doInFilter((request, response) -> {
             // 初始化, 没有session
-            HttpSession session = request.getSession();
+            HttpSession session = request.getSession(false);
             assertThat(session).isNull();
 
             // create = true, session not null
@@ -56,7 +56,7 @@ public class SimpleSessionRequestTest {
         nextRequest();
 
         doInFilter((request, response) -> {
-            HttpSession session = request.getSession();
+            HttpSession session = request.getSession(false);
             assertThat(session).isNotNull();
         });
     }

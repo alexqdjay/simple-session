@@ -76,7 +76,7 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
 
     @Override
     public HttpSession getSession() {
-        return this.getSession(false);
+        return this.getSession(true);
     }
 
     @Override
