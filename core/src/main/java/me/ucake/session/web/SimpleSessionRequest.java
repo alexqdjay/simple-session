@@ -135,11 +135,4 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
         this.setAttribute(ATTR_CURRENT_SESSION, session);
     }
 
-    public void setSessionRepository(SessionRepository sessionRepository) {
-        this.sessionRepository = sessionRepository;
-    }
-
-    public void setSessionTransaction(SessionTransaction sessionTransaction) {
-        this.sessionTransaction = sessionTransaction;
-    }
 }

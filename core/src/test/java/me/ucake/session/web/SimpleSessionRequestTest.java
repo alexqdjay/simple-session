@@ -15,6 +15,7 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by alexqdjay on 2018/2/25.
@@ -40,8 +41,6 @@ public class SimpleSessionRequestTest {
         simpleSessionFilter = new SimpleSessionFilter(sessionRepository);
     }
 
-
-
     @Test
     public void test_getSession() throws IOException, ServletException {
         doInFilter((request, response) -> {
@@ -59,6 +58,27 @@ public class SimpleSessionRequestTest {
         doInFilter((request, response) -> {
             HttpSession session = request.getSession();
             assertThat(session).isNotNull();
+        });
+    }
+
+    @Test
+    public void test_createDate() throws IOException, ServletException, InterruptedException {
+        String ATTR_CREATE = "ATTR_CREATE";
+        doInFilter((request, response) -> {
+            HttpSession session = request.getSession(true);
+            long now = System.currentTimeMillis();
+            assertThat(now - session.getCreationTime()).isLessThan(100);
+
+            request.setAttribute(ATTR_CREATE, session.getCreationTime());
+        });
+
+        long createTime = (long) mockRequest.getAttribute(ATTR_CREATE);
+        TimeUnit.MILLISECONDS.sleep(10);
+        nextRequest();
+
+        doInFilter((request, response) -> {
+            HttpSession session = request.getSession();
+            assertThat(session.getCreationTime()).isEqualTo(createTime);
         });
     }
 
