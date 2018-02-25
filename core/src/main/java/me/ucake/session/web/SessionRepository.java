@@ -1,6 +1,7 @@
 package me.ucake.session.web;
 
-import javax.servlet.ServletContext;
+import me.ucake.session.FlushMode;
+
 import java.util.Map;
 
 /**
@@ -8,9 +9,9 @@ import java.util.Map;
  */
 public interface SessionRepository {
 
-    Session getSessionById(String sessionId);
-
-    Session createSession(ServletContext servletContext);
+    Map<String, Object> getSessionAttributesById(String sessionId);
 
     void saveAttributes(String sessionId, Map<String, Object> attributes);
+
+    FlushMode getFlushMode();
 }

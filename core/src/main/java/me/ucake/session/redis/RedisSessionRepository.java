@@ -5,7 +5,6 @@ import me.ucake.session.FlushMode;
 import me.ucake.session.web.Session;
 import me.ucake.session.web.SessionRepository;
 
-import javax.servlet.ServletContext;
 import java.util.Map;
 
 /**
@@ -22,14 +21,9 @@ public class RedisSessionRepository implements SessionRepository {
     }
 
     @Override
-    public Session getSessionById(String sessionId) {
+    public Map<String, Object> getSessionAttributesById(String sessionId) {
         //TODO 补充getSessionById 实现
         return null;
-    }
-
-    @Override
-    public Session createSession(ServletContext servletContext) {
-        return Session.createNew(servletContext, flushMode, this);
     }
 
     @Override
@@ -41,4 +35,8 @@ public class RedisSessionRepository implements SessionRepository {
         return String.format(Consts.RedisFields.FIELDS_PREFIX, sessionId);
     }
 
+    @Override
+    public FlushMode getFlushMode() {
+        return flushMode;
+    }
 }

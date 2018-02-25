@@ -22,7 +22,7 @@ public class AppMainRun {
     @Bean
     public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
-        SimpleSessionFilter filter = new SimpleSessionFilter();
+        SimpleSessionFilter filter = new SimpleSessionFilter(new MapSessionRepository());
         filter.setSessionRepository(new MapSessionRepository(FlushMode.IMMEDIATE));
         filterRegistrationBean.setFilter(filter);
         filterRegistrationBean.setOrder(Integer.MIN_VALUE);

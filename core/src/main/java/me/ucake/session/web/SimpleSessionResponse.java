@@ -16,7 +16,8 @@ public class SimpleSessionResponse extends HttpServletResponseWrapper {
      * @param response
      * @throws IllegalArgumentException if the response is null
      */
-    public SimpleSessionResponse(HttpServletResponse response) {
+    public SimpleSessionResponse(HttpServletResponse response, SessionRepository sessionRepository) {
         super(response);
+        this.sessionRepository = sessionRepository;
     }
 }

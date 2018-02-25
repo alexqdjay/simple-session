@@ -51,16 +51,15 @@ public class Session implements Serializable, HttpSession {
     private Map<String, Object> attributes = new HashMap<>();
     private Map<String, Object> cached = new HashMap<>();
     private boolean isNew = false;
-    private FlushMode flushMode;
     private boolean invalidated = false;
 
     private ServletContext servletContext;
 
     private SessionRepository sessionRepository;
 
-    public static Session createNew(ServletContext servletContext, FlushMode flushMode,
+    public static Session createNew(ServletContext servletContext,
                                     SessionRepository sessionRepository) {
-        Session session = new Session(flushMode);
+        Session session = new Session();
         session.id = UUIDGen.gen();
         session.servletContext = servletContext;
         session.createTime = session.lastAccessTime = System.currentTimeMillis();
@@ -73,8 +72,33 @@ public class Session implements Serializable, HttpSession {
         return session;
     }
 
-    public Session(FlushMode flushMode) {
-        this.flushMode = flushMode;
+    public static Session restoreById(String sessionId,
+                                      ServletContext servletContext,
+                                      SessionRepository sessionRepository) {
+        Map<String, Object> attributes = sessionRepository.getSessionAttributesById(sessionId);
+        if (attributes == null) {
+            return null;
+        }
+        Session session = new Session();
+        session.id = sessionId;
+        session.lastAccessTime = System.currentTimeMillis();
+        session.cached.put(FIELD_LAST_ACCESS_TIME_NAME, session.lastAccessTime);
+        session.servletContext = servletContext;
+        session.attributes.putAll(attributes);
+        session.fillField();
+        session.setSessionRepository(sessionRepository);
+        session.flushToRepository();
+        return session;
+    }
+
+    private void fillField() {
+        if (attributes.containsKey(FIELD_CREATE_TIME_NAME)) {
+            this.createTime = (long) attributes.get(FIELD_CREATE_TIME_NAME);
+        }
+
+        if (attributes.containsKey(FIELD_MAX_INACTIVE_INTERVAL_NAME)) {
+            this.maxInactiveInterval = (int) attributes.get(FIELD_MAX_INACTIVE_INTERVAL_NAME);
+        }
     }
 
     @Override
@@ -185,13 +209,18 @@ public class Session implements Serializable, HttpSession {
         return this.isNew;
     }
 
+    protected String changeSessionId() {
+        this.id = UUIDGen.gen();
+        return this.id;
+    }
+
     public void hasAccessed() {
         checkState();
         this.lastAccessTime = System.currentTimeMillis();
     }
 
     private void flushToRepository() {
-        if (this.flushMode == FlushMode.LAZY) {
+        if (this.getFlushMode() == FlushMode.LAZY) {
             return;
         }
         this.sessionRepository.saveAttributes(this.id, this.cached);
@@ -209,7 +238,7 @@ public class Session implements Serializable, HttpSession {
     }
 
     public FlushMode getFlushMode() {
-        return flushMode;
+        return sessionRepository.getFlushMode();
     }
 
     private void setSessionRepository(SessionRepository sessionRepository) {

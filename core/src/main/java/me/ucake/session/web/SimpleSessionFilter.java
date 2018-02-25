@@ -20,6 +20,10 @@ public class SimpleSessionFilter implements Filter {
     private SessionRepository sessionRepository;
     private SessionTransaction sessionTransaction = DEFAULT_SESSION_TRANSACTION;
 
+    public SimpleSessionFilter(SessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
+    }
+
     public SessionTransaction getSessionTransaction() {
         return sessionTransaction;
     }
@@ -52,21 +56,31 @@ public class SimpleSessionFilter implements Filter {
         if (visited) {
             chain.doFilter(request, response);
         } else {
-            SimpleSessionRequest sessionRequest = new SimpleSessionRequest(servletRequest);
-            sessionRequest.setSessionRepository(sessionRepository);
-            sessionRequest.setSessionTransaction(getSessionTransaction());
-            SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse);
-            sessionResponse.sessionRepository = sessionRepository;
+            try {
+                doFilter(chain, servletRequest, servletResponse);
+            } finally {
+                servletRequest.removeAttribute(ALREADY_VISITED_NAME);
+            }
+        }
+    }
 
-            servletRequest.setAttribute(ALREADY_VISITED_NAME, Boolean.TRUE);
-
+    private void doFilter(FilterChain chain, HttpServletRequest servletRequest, HttpServletResponse servletResponse)
+            throws IOException, ServletException {
+        SimpleSessionRequest sessionRequest = new SimpleSessionRequest(servletRequest,
+                servletResponse,
+                sessionRepository,
+                getSessionTransaction());
+        SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse, sessionRepository);
+        servletRequest.setAttribute(ALREADY_VISITED_NAME, Boolean.TRUE);
+        try {
             chain.doFilter(sessionRequest, sessionResponse);
+        } finally {
+            sessionRequest.commitSession();
         }
     }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-
     }
 
     @Override

@@ -1,16 +1,16 @@
 package me.ucake.session.web;
 
+import me.ucake.session.jvm.MapSessionRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServlet;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +30,7 @@ public class SimpleSessionFilterTest {
     public void setup() {
         mockRequest = new MockHttpServletRequest();
         mockResponse = new MockHttpServletResponse();
-        filter = new SimpleSessionFilter();
+        filter = new SimpleSessionFilter(new MapSessionRepository());
     }
 
 
@@ -44,12 +44,27 @@ public class SimpleSessionFilterTest {
                 super.service(req, res);
             }
         };
-        mockFilterChain = new MockFilterChain(servlet, filter);
+        AtomicReference<ServletRequest> targetRequest = new AtomicReference<>();
+        mockFilterChain = new MockFilterChain(servlet, filter, new Filter() {
+            @Override
+            public void init(FilterConfig filterConfig) throws ServletException {
+            }
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                targetRequest.set(request);
+                chain.doFilter(request, response);
+            }
+            @Override
+            public void destroy() {
+            }
+        });
 
-        filter.doFilter(mockRequest, mockResponse, mockFilterChain);
+        mockFilterChain.doFilter(mockRequest, mockResponse);
 
         assertThat(mockRequest.getAttribute(SimpleSessionFilter.class.getName().concat(".VISITED")))
-                .isEqualTo(Boolean.TRUE);
+                .isNull();
+
+        assertThat(targetRequest.get()).isInstanceOf(SimpleSessionRequest.class);
     }
 
 }

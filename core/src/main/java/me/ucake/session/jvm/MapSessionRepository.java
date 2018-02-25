@@ -4,7 +4,6 @@ import me.ucake.session.FlushMode;
 import me.ucake.session.web.Session;
 import me.ucake.session.web.SessionRepository;
 
-import javax.servlet.ServletContext;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,19 +20,23 @@ public class MapSessionRepository implements SessionRepository {
         this.flushMode = flushMode;
     }
 
-    @Override
-    public Session getSessionById(String sessionId) {
-        throw new IllegalStateException();
+    public MapSessionRepository() {
+        this(FlushMode.IMMEDIATE);
     }
 
     @Override
-    public Session createSession(ServletContext servletContext) {
-        return Session.createNew(servletContext, flushMode, this);
+    public Map<String, Object> getSessionAttributesById(String sessionId) {
+        return sessionValuesMap.get(sessionId);
     }
 
     @Override
     public void saveAttributes(String sessionId, Map<String, Object> attributes) {
         getSessionValues(sessionId).putAll(attributes);
+    }
+
+    @Override
+    public FlushMode getFlushMode() {
+        return flushMode;
     }
 
     private Map<String, Object> getSessionValues(String sid) {
