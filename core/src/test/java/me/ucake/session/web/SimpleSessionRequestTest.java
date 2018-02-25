@@ -83,6 +83,31 @@ public class SimpleSessionRequestTest {
     }
 
     @Test
+    public void test_lastAccessTime() throws IOException, ServletException, InterruptedException {
+        String ATTR_LAST = "ATTR_LAST";
+        doInFilter((request, response) -> {
+            HttpSession session = request.getSession(true);
+            long now = System.currentTimeMillis();
+            assertThat(now - session.getLastAccessedTime()).isLessThan(100);
+
+            request.setAttribute(ATTR_LAST, session.getLastAccessedTime());
+        });
+
+        long last = (long) mockRequest.getAttribute(ATTR_LAST);
+        TimeUnit.MILLISECONDS.sleep(10);
+        nextRequest();
+
+        doInFilter((request, response) -> {
+            HttpSession session = request.getSession();
+            assertThat(session.getLastAccessedTime()).isGreaterThan(last);
+
+            long lastAccessedTime = session.getLastAccessedTime();
+            request.getSession();
+            assertThat(session.getLastAccessedTime()).isEqualTo(lastAccessedTime);
+        });
+    }
+
+    @Test
     public void test_getSessionByCurrent() throws IOException, ServletException {
         doInFilter((request, response) -> {
             HttpSession session = request.getSession(true);
