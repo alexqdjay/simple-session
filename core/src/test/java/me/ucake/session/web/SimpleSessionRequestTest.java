@@ -260,6 +260,19 @@ public class SimpleSessionRequestTest {
         });
     }
 
+    @Test
+    public void test_createIsNewTrue() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().isNew()).isTrue();
+            assertThat(request.getSession().isNew()).isTrue();
+        });
+
+        nextRequest();
+
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().isNew()).isFalse();
+        });
+    }
 
     private void setSessionCookie(String sessionId) {
         this.mockRequest.setCookies(new Cookie("ssession", sessionId));
