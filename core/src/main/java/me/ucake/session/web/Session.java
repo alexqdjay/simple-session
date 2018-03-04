@@ -9,8 +9,9 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static me.ucake.session.Consts.RedisFields.*;
+import static me.ucake.session.Consts.RequestAttributes.*;
 
 /**
  * Created by alexqdjay on 2017/8/20.
@@ -126,6 +127,7 @@ public class Session implements Serializable, HttpSession {
     @Override
     public void setMaxInactiveInterval(int interval) {
         this.maxInactiveInterval = interval;
+        this.putAndFlush(FIELD_MAX_INACTIVE_INTERVAL_NAME, interval);
     }
 
     @Override
@@ -153,7 +155,7 @@ public class Session implements Serializable, HttpSession {
     @Override
     public Enumeration<String> getAttributeNames() {
         checkState();
-        Iterator<String> namesItor = attributes.keySet().iterator();
+        Iterator<String> namesItor = getRealAttributeNames().iterator();
         Enumeration<String> enumeration = new Enumeration<String>() {
             @Override
             public boolean hasMoreElements() {
@@ -171,7 +173,7 @@ public class Session implements Serializable, HttpSession {
     @Override
     public String[] getValueNames() {
         checkState();
-        Set<String> names = attributes.keySet();
+        Set<String> names = getRealAttributeNames();
         return names.toArray(new String[0]);
     }
 
@@ -243,5 +245,16 @@ public class Session implements Serializable, HttpSession {
 
     private void setSessionRepository(SessionRepository sessionRepository) {
         this.sessionRepository = sessionRepository;
+    }
+
+    public Set<String> getRealAttributeNames() {
+        return attributes.keySet().stream().filter(name -> {
+            if (FIELD_CREATE_TIME_NAME.equals(name) ||
+                    FIELD_LAST_ACCESS_TIME_NAME.equals(name) ||
+                    FIELD_MAX_INACTIVE_INTERVAL_NAME.equals(name)) {
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toSet());
     }
 }

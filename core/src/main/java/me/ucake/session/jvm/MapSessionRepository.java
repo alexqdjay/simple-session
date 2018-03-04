@@ -31,7 +31,17 @@ public class MapSessionRepository implements SessionRepository {
 
     @Override
     public void saveAttributes(String sessionId, Map<String, Object> attributes) {
-        getSessionValues(sessionId).putAll(attributes);
+        if (attributes == null) {
+            return;
+        }
+        Map<String, Object> values = getSessionValues(sessionId);
+        attributes.entrySet().stream().forEach(entry -> {
+            if (entry.getValue() == null) {
+                values.remove(entry.getKey());
+            } else {
+                values.put(entry.getKey(), entry.getValue());
+            }
+        });
     }
 
     @Override

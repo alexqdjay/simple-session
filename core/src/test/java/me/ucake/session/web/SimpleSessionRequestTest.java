@@ -13,6 +13,8 @@ import static org.assertj.core.api.Assertions.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -125,6 +127,29 @@ public class SimpleSessionRequestTest {
     }
 
     @Test
+    public void test_sessionId() throws IOException, ServletException {
+        String[] ids = new String[1];
+        doInFilter((request, response) -> {
+            String sessionId = request.getSession().getId();
+            assertThat(sessionId).isNotNull();
+            assertThat(sessionId).isEqualTo(request.getSession().getId());
+            ids[0] = sessionId;
+        });
+
+        setSessionCookie(ids[0]);
+        doInFilter((request, response) -> {
+            assertThat(ids[0]).isEqualTo(request.getSession().getId());
+        });
+    }
+
+    @Test
+    public void test_servletContext() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            assertThat(request.getServletContext()).isSameAs(request.getSession().getServletContext());
+        });
+    }
+
+    @Test
     public void test_changeSessionId() throws IOException, ServletException {
         String ATTR_SID = "ATTR_SID";
         doInFilter((request, response) -> {
@@ -149,7 +174,6 @@ public class SimpleSessionRequestTest {
     public void test_isRequestedSessionIdValid() throws IOException, ServletException {
         doInFilter((request, response) -> {
             assertThat(request.isRequestedSessionIdValid()).isFalse();
-
             request.getSession(true);
         });
 
@@ -157,6 +181,88 @@ public class SimpleSessionRequestTest {
         doInFilter((request, response) -> {
             assertThat(request.isRequestedSessionIdValid()).isTrue();
         });
+    }
+
+    @Test
+    public void test_maxInactiveIntervalDefault() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            int inactive = request.getSession().getMaxInactiveInterval();
+            assertThat(inactive).isEqualTo(1800);
+        });
+    }
+
+    @Test
+    public void test_setInactiveInterval() throws IOException, ServletException {
+        final int interval = 10001;
+        doInFilter((request, response) -> {
+            request.getSession().setMaxInactiveInterval(interval);
+            assertThat(request.getSession().getMaxInactiveInterval()).isEqualTo(interval);
+        });
+
+        nextRequest();
+
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().getMaxInactiveInterval()).isEqualTo(interval);
+        });
+    }
+
+    @Test
+    public void test_setAttributes() throws IOException, ServletException {
+        String ATTR = "ATTR";
+        String value = "12233";
+        doInFilter((request, response) -> {
+            request.getSession().setAttribute(ATTR, value);
+            assertThat(Collections.list(request.getSession().getAttributeNames()))
+                    .containsOnly(ATTR);
+
+        });
+
+        nextRequest();
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().getAttribute(ATTR)).isEqualTo(value);
+            assertThat(Collections.list(request.getSession().getAttributeNames()))
+                    .containsOnly(ATTR);
+
+            request.getSession().removeAttribute(ATTR);
+            assertThat(request.getSession().getAttribute(ATTR)).isNull();
+        });
+
+        nextRequest();
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().getAttribute(ATTR)).isNull();
+        });
+    }
+
+    @Test
+    public void test_setValue() throws IOException, ServletException {
+        String ATTR = "ATTR";
+        String value = "12233";
+        doInFilter((request, response) -> {
+            request.getSession().putValue(ATTR, value);
+            assertThat(request.getSession().getValue(ATTR)).isEqualTo(value);
+            assertThat(Arrays.asList(request.getSession().getValueNames()))
+                    .containsOnly(ATTR);
+        });
+
+        nextRequest();
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().getValue(ATTR)).isEqualTo(value);
+            assertThat(Arrays.asList(request.getSession().getValueNames()))
+                    .containsOnly(ATTR);
+
+            request.getSession().removeValue(ATTR);
+            assertThat(request.getSession().getValue(ATTR)).isNull();
+        });
+
+        nextRequest();
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().getValue(ATTR)).isNull();
+        });
+    }
+
+
+    private void setSessionCookie(String sessionId) {
+        this.mockRequest.setCookies(new Cookie("ssession", sessionId));
     }
 
     private void setupRequest() {

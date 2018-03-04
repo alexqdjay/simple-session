@@ -92,7 +92,7 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
 
     @Override
     public boolean isRequestedSessionIdValid() {
-        //TODO 逻辑有点问题
+        // TODO 逻辑有点问题
         if (requestedSessionIdValid != null) {
             return this.requestedSessionIdValid.booleanValue();
         }
