@@ -274,6 +274,52 @@ public class SimpleSessionRequestTest {
         });
     }
 
+    @Test
+    public void test_setCookieIfChanged() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            request.getSession();
+        });
+        assertThat(mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION)).isNotNull();
+
+        nextRequest();
+
+        this.mockResponse.reset();
+        doInFilter((request, response) -> {
+            request.changeSessionId();
+            assertThat(request.getSession().isNew()).isFalse();
+        });
+        assertThat(mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION)).isNotNull();
+    }
+
+    @Test
+    public void test_getSessionNew() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            request.getSession();
+        });
+
+        assertSessionNew();
+    }
+
+    @Test
+    public void test_getSessionFalseNew() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            request.getSession(false);
+        });
+
+        Cookie cookie = mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION);
+        assertThat(cookie).isNull();
+    }
+
+    private void assertSessionNew() {
+        Cookie cookie = mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION);
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getValue()).isNotEqualTo("INVALID");
+        assertThat(cookie.getMaxAge()).isEqualTo(-1);
+        assertThat(cookie.getSecure()).isTrue();
+        assertThat(cookie.isHttpOnly()).isTrue();
+    }
+
+
     private void setSessionCookie(String sessionId) {
         this.mockRequest.setCookies(new Cookie("ssession", sessionId));
     }

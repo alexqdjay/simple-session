@@ -10,10 +10,10 @@ import javax.servlet.http.HttpSession;
  */
 public class CookieBasedTransaction implements SessionTransaction {
 
-    private static final String COOKIE_NAME_SESSION = "ssession";
+    public static final String COOKIE_NAME_SESSION = "ssession";
 
-    private Boolean useSecure = null;
-    private boolean useHttpOnlyCookie = false;
+    private Boolean useSecure = Boolean.TRUE;
+    private boolean useHttpOnlyCookie = true;
     private String cookiePath;
 
     @Override
