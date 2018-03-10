@@ -310,8 +310,82 @@ public class SimpleSessionRequestTest {
         assertThat(cookie).isNull();
     }
 
+    @Test
+    public void test_isRequestedValid() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            request.getSession();
+        });
+
+        nextRequest();
+        this.mockRequest.setRequestedSessionIdValid(false);
+        doInFilter((request, response) -> {
+            assertThat(request.isRequestedSessionIdValid()).isTrue();
+        });
+    }
+
+    @Test
+    public void test_changeSessionIdNoSession() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            try {
+                request.changeSessionId();
+                fail("expected exception");
+            } catch (IllegalStateException e) {}
+        });
+    }
+
+    @Test
+    public void test_isRequestedValidSessionFalseInvalidId() throws IOException, ServletException {
+        setSessionCookie("invalid");
+        mockRequest.setRequestedSessionIdValid(false);
+        doInFilter((request, response) -> {
+            assertThat(request.isRequestedSessionIdValid()).isFalse();
+        });
+    }
+
+    @Test
+    public void test_isRequestedValidSessionFalse() throws IOException, ServletException {
+        mockRequest.setRequestedSessionIdValid(false);
+        doInFilter((request, response) -> {
+            assertThat(request.isRequestedSessionIdValid()).isFalse();
+        });
+    }
+
+    @Test
+    public void test_securitySet() throws IOException, ServletException {
+        mockRequest.setSecure(false);
+        doInFilter((request, response) -> {
+            request.getSession();
+        });
+        Cookie cookie = getSessionCookie();
+
+        assertThat(cookie.getSecure()).isTrue();
+    }
+
+    @Test
+    public void test_context() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            HttpSessionContext context = request.getSession().getSessionContext();
+            assertThat(context).isNotNull();
+            assertThat(context.getSession("xxx")).isNull();
+            assertThat(context.getIds()).isNotNull();
+            assertThat(context.getIds().hasMoreElements()).isFalse();
+        });
+    }
+
+    @Test
+    public void test_sessionInvalid() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            request.getSession().invalidate();
+            try {
+                request.getSession().invalidate();
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+        });
+    }
+
+
     private void assertSessionNew() {
-        Cookie cookie = mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION);
+        Cookie cookie = getSessionCookie();
         assertThat(cookie).isNotNull();
         assertThat(cookie.getValue()).isNotEqualTo("INVALID");
         assertThat(cookie.getMaxAge()).isEqualTo(-1);
@@ -319,6 +393,9 @@ public class SimpleSessionRequestTest {
         assertThat(cookie.isHttpOnly()).isTrue();
     }
 
+    private Cookie getSessionCookie() {
+        return mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION);
+    }
 
     private void setSessionCookie(String sessionId) {
         this.mockRequest.setCookies(new Cookie("ssession", sessionId));
