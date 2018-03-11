@@ -596,6 +596,19 @@ public class SimpleSessionRequestTest {
         });
     }
 
+    // commit 以后不能修改值
+    @Test(expected = IllegalStateException.class)
+    public void test_sessionCommitMustNotChangeAttr() throws IOException, ServletException {
+        AtomicReference<HttpSession> sessionRef = new AtomicReference<>();
+
+        doInFilter((request, response) -> {
+            sessionRef.set(request.getSession());
+            request.getSession().setAttribute("a", 1);
+        });
+
+        sessionRef.get().setAttribute("n", "n");
+    }
+
 
     private void assertNewSession() {
         Cookie cookie = getSessionCookie();

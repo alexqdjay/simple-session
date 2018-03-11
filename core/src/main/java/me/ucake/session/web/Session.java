@@ -53,6 +53,7 @@ public class Session implements Serializable, HttpSession {
     private Map<String, Object> cached = new HashMap<>();
     private boolean isNew = false;
     private boolean invalidated = false;
+    private boolean committed = false;
 
     private ServletContext servletContext;
 
@@ -224,11 +225,6 @@ public class Session implements Serializable, HttpSession {
         return this.id;
     }
 
-    public void hasAccessed() {
-        checkState();
-        this.lastAccessTime = System.currentTimeMillis();
-    }
-
     private void flushToRepository() {
         if (this.getFlushMode() == FlushMode.LAZY) {
             return;
@@ -236,7 +232,12 @@ public class Session implements Serializable, HttpSession {
         this.saveToRepositoryImmediately();
     }
 
-    protected void saveToRepositoryImmediately() {
+    protected void doCommitImmediately() {
+        this.committed = true;
+        saveToRepositoryImmediately();
+    }
+
+    private void saveToRepositoryImmediately() {
         this.sessionRepository.saveAttributes(this.id, this.cached);
     }
 
@@ -248,6 +249,10 @@ public class Session implements Serializable, HttpSession {
     private void checkState() {
         if (this.invalidated) {
             throw new IllegalStateException("The Session is invalidated!");
+        }
+
+        if (this.committed) {
+            throw new IllegalStateException("The Session is committed!");
         }
     }
 

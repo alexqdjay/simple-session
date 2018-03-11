@@ -120,7 +120,7 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
     public void commitSession() {
         Session session = getCurrentSession();
         if (session != null) {
-            session.saveToRepositoryImmediately();
+            session.doCommitImmediately();
             if (!this.isRequestedSessionIdValid() ||
                     !session.getId().equals(getRequestedSessionId())) {
                 this.sessionTransaction.onNewSession(session, this, this.response);
