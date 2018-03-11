@@ -48,14 +48,14 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
 
         String sessionId = getRequestedSessionId();
 
-        if (sessionId != null) {
+        if (sessionId != null && getAttribute(ATTR_INVALID_SESSION_ID) == null) {
             session = getSessionById(sessionId);
             if (session != null) {
                 this.requestedSessionIdValid = true;
                 setCurrentSession(session);
                 return session;
             } else {
-                //TODO mark session invalid
+                setAttribute(ATTR_INVALID_SESSION_ID, Boolean.TRUE);
             }
         }
 

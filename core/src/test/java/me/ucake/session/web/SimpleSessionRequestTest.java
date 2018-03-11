@@ -8,11 +8,13 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import static me.ucake.session.Consts.RequestAttributes.ATTR_INVALID_SESSION_ID;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
+import javax.xml.ws.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -483,7 +485,116 @@ public class SimpleSessionRequestTest {
         assertThat(sessionRepository.getSessionAttributesById(idRef.get())).isNotNull();
     }
 
+    @Test
+    public void test_sessionLazyUpdates() throws IOException, ServletException {
+        sessionRepository.setFlushMode(FlushMode.LAZY);
+        AtomicReference<String> idRef = new AtomicReference<>();
+        doInFilter((request, response) -> {
+            String sessionId = request.getSession().getId();
+            idRef.set(sessionId);
+            assertThat(sessionRepository.getSessionAttributesById(sessionId)).isNull();
+        });
 
+        nextRequest();
+
+        doInFilter((request, response) -> {
+            HttpSession session = request.getSession();
+            assertThat(session).isNotNull();
+            session.setAttribute("a", 123L);
+
+            assertThat(session.getAttribute("a")).isEqualTo(123L);
+            assertThat(sessionRepository.getSessionAttributesById(session.getId()).get("a")).isNull();
+        });
+
+        assertThat(sessionRepository.getSessionAttributesById(idRef.get()).get("a")).isEqualTo(123L);
+    }
+
+    @Test
+    public void test_onSessionNew() throws IOException, ServletException {
+        simpleSessionFilter.setSessionTransaction(mockSessionTransaction);
+        doInFilter((request, response) -> {
+            request.getSession();
+        });
+
+        verify(mockSessionTransaction, times(1)).onNewSession(any(), any(), any());
+    }
+
+    @Test
+    public void test_onSessionInvalidate() throws IOException, ServletException {
+        simpleSessionFilter.setSessionTransaction(mockSessionTransaction);
+        String[] ids = new String[1];
+        doInFilter((request, response) -> {
+            ids[0] = request.getSession().getId();
+        });
+        String id = ids[0];
+        when(mockSessionTransaction.getRequestedSessionId(any())).thenReturn(id);
+
+        mockRequest = new MockHttpServletRequest();
+        mockResponse = new MockHttpServletResponse();
+        doInFilter((request, response) -> {
+            request.getSession().invalidate();
+        });
+
+        verify(mockSessionTransaction, times(1)).onInvalidateSession(any(), any());
+    }
+
+    @Test
+    public void test_notInvokeInvalidate() throws IOException, ServletException {
+        simpleSessionFilter.setSessionTransaction(mockSessionTransaction);
+        String[] ids = new String[1];
+        doInFilter((request, response) -> {
+            ids[0] = request.getSession().getId();
+        });
+        String id = ids[0];
+        when(mockSessionTransaction.getRequestedSessionId(any())).thenReturn(id);
+
+        mockRequest = new MockHttpServletRequest();
+        mockResponse = new MockHttpServletResponse();
+        doInFilter((request, response) -> {
+        });
+
+        verify(mockSessionTransaction, never()).onInvalidateSession(any(), any());
+    }
+
+    @Test
+    public void test_noSessionNoRepository() throws IOException, ServletException {
+        SessionRepository sessionRepository = spy(new MapSessionRepository());
+        simpleSessionFilter.setSessionRepository(sessionRepository);
+
+        doInFilter((request, response) -> {
+            request.getSession().getId();
+        });
+
+        mockRequest = new MockHttpServletRequest();
+        reset(sessionRepository);
+        doInFilter((request, response) -> {
+        });
+
+        verifyZeroInteractions(sessionRepository);
+    }
+
+    @Test
+    public void test_sessionInvalidateInvokeRepositoryOnce() throws IOException, ServletException {
+        String sid = "notExistId";
+        setSessionCookie(sid);
+        this.sessionRepository = spy(this.sessionRepository);
+        simpleSessionFilter.setSessionRepository(this.sessionRepository);
+
+        doInFilter((request, response) -> {
+            assertThat(request.getAttribute(ATTR_INVALID_SESSION_ID)).isNull();
+
+            // First
+            HttpSession session = request.getSession(false);
+            assertThat(session).isNull();
+            verify(this.sessionRepository, times(1)).getSessionAttributesById(sid);
+            assertThat(request.getAttribute(ATTR_INVALID_SESSION_ID)).isNotNull();
+
+            // Second
+            session = request.getSession(false);
+            assertThat(session).isNull();
+            verify(this.sessionRepository, times(1)).getSessionAttributesById(sid);
+        });
+    }
 
 
     private void assertNewSession() {

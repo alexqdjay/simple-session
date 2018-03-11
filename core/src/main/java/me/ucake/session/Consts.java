@@ -19,6 +19,7 @@ public interface Consts {
 
     interface RequestAttributes {
         String ATTR_CURRENT_SESSION = SIMPLE_SESSION_PREFIX + "current_session";
+        String ATTR_INVALID_SESSION_ID = SIMPLE_SESSION_PREFIX + "invalid_session_id";
         String FIELD_CREATE_TIME_NAME =  "createTime";
         String FIELD_LAST_ACCESS_TIME_NAME =  "lastAccessTime";
         String FIELD_MAX_INACTIVE_INTERVAL_NAME =  "maxInactiveInterval";

@@ -213,10 +213,6 @@ public class Session implements Serializable, HttpSession {
         this.invalidated = true;
     }
 
-    public void commit() {
-        this.bindRequest.commitSession();
-    }
-
     @Override
     public boolean isNew() {
         checkState();
