@@ -1,7 +1,6 @@
 package me.ucake.session.jvm;
 
 import me.ucake.session.FlushMode;
-import me.ucake.session.web.Session;
 import me.ucake.session.web.SessionRepository;
 
 import java.util.Map;
@@ -49,6 +48,14 @@ public class MapSessionRepository implements SessionRepository {
         return flushMode;
     }
 
+    @Override
+    public void removeSession(String sessionId) {
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            return;
+        }
+        sessionValuesMap.remove(sessionId);
+    }
+
     private Map<String, Object> getSessionValues(String sid) {
         Map<String, Object> sessionValues = sessionValuesMap.get(sid);
         if (sessionValues == null) {
@@ -59,5 +66,9 @@ public class MapSessionRepository implements SessionRepository {
             }
         }
         return sessionValues;
+    }
+
+    public void setFlushMode(FlushMode flushMode) {
+        this.flushMode = flushMode;
     }
 }

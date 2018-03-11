@@ -1,5 +1,7 @@
 package me.ucake.session.web;
 
+import me.ucake.session.FlushMode;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +19,7 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
     private HttpServletResponse response;
 
     private Boolean requestedSessionIdValid;
+    private boolean requestedSessionIdInvalidate;
 
     /**
      * Constructs a request object wrapping the given request.
@@ -60,7 +63,7 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
             return null;
         }
 
-        session = Session.createNew(getServletContext(), sessionRepository);
+        session = Session.createNew(getServletContext(), sessionRepository, this);
 
         this.setCurrentSession(session);
 
@@ -71,7 +74,12 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
         if (sessionId == null) {
             return null;
         }
-        return Session.restoreById(sessionId, getServletContext(), sessionRepository);
+        return Session.restoreById(sessionId, getServletContext(), sessionRepository, this);
+    }
+
+    protected void invalidateSession() {
+        requestedSessionIdInvalidate = true;
+        setCurrentSession(null);
     }
 
     @Override
@@ -109,12 +117,16 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
         return sessionTransaction.getRequestedSessionId(this);
     }
 
-    protected void commitSession() {
+    public void commitSession() {
         Session session = getCurrentSession();
         if (session != null) {
-            if (!session.getId().equals(getRequestedSessionId())) {
+            session.saveToRepositoryImmediately();
+            if (!this.isRequestedSessionIdValid() ||
+                    !session.getId().equals(getRequestedSessionId())) {
                 this.sessionTransaction.onNewSession(session, this, this.response);
             }
+        } else if (getCurrentSession() == null && this.requestedSessionIdInvalidate) {
+            this.sessionTransaction.onInvalidateSession(this, this.response);
         }
     }
 

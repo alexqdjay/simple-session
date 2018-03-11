@@ -1,5 +1,6 @@
 package me.ucake.session.web;
 
+import me.ucake.session.FlushMode;
 import me.ucake.session.jvm.MapSessionRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by alexqdjay on 2018/2/25.
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class SimpleSessionRequestTest {
 
     private SimpleSessionFilter simpleSessionFilter;
-    private SessionRepository sessionRepository;
+    private MapSessionRepository sessionRepository;
     private MockHttpServletRequest mockRequest;
     private MockHttpServletResponse mockResponse;
     private SessionTransaction mockSessionTransaction;
@@ -297,7 +299,7 @@ public class SimpleSessionRequestTest {
             request.getSession();
         });
 
-        assertSessionNew();
+        assertNewSession();
     }
 
     @Test
@@ -375,16 +377,116 @@ public class SimpleSessionRequestTest {
     @Test
     public void test_sessionInvalid() throws IOException, ServletException {
         doInFilter((request, response) -> {
-            request.getSession().invalidate();
+            HttpSession session = request.getSession();
+            session.invalidate();
             try {
-                request.getSession().invalidate();
+                session.invalidate();
                 fail("excepted exception");
             } catch (IllegalStateException e) {}
+
+            try {
+                session.getCreationTime();
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.getAttributeNames();
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.getAttribute("aaa");
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.setAttribute("a", "c");
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.getValue("c");
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.putValue("c", "c");
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.getValueNames();
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.removeValue("c");
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.removeAttribute("c");
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.isNew();
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            try {
+                session.getLastAccessedTime();
+                fail("excepted exception");
+            } catch (IllegalStateException e) {}
+
+            session.getId();
+
+            session.getMaxInactiveInterval();
+
+            session.getServletContext();
+
+            session.getSessionContext();
+
+            session.setMaxInactiveInterval(3000);
         });
     }
 
+    @Test
+    public void test_sessionInvalidAttrSet() throws IOException, ServletException {
+        doInFilter((request, response) -> {
+            HttpSession session = request.getSession();
+            session.setAttribute("a", 1);
+            session.invalidate();
+            request.getSession().setAttribute("b", 2);
+        });
 
-    private void assertSessionNew() {
+        assertNewSession();
+
+        nextRequest();
+
+        doInFilter((request, response) -> {
+            assertThat(request.getSession().getAttribute("a")).isNull();
+            assertThat(request.getSession().getAttribute("b")).isNotNull();
+        });
+    }
+
+    @Test
+    public void test_sessionCommit() throws IOException, ServletException {
+        sessionRepository.setFlushMode(FlushMode.LAZY);
+        AtomicReference<String> idRef = new AtomicReference<>();
+        doInFilter((request, response) -> {
+            String sessionId = request.getSession().getId();
+            idRef.set(sessionId);
+            assertThat(sessionRepository.getSessionAttributesById(sessionId)).isNull();
+        });
+
+        assertThat(sessionRepository.getSessionAttributesById(idRef.get())).isNotNull();
+    }
+
+
+
+
+    private void assertNewSession() {
         Cookie cookie = getSessionCookie();
         assertThat(cookie).isNotNull();
         assertThat(cookie.getValue()).isNotEqualTo("INVALID");
@@ -448,7 +550,7 @@ public class SimpleSessionRequestTest {
 
     interface DoInFilter {
         void doFilter(HttpServletRequest wrappedRequest,
-                      HttpServletResponse wrappedResponse);
+                      HttpServletResponse wrappedResponse) throws IOException;
 
     }
 

@@ -13,4 +13,6 @@ public interface SessionTransaction {
 
     void onNewSession(HttpSession session, HttpServletRequest request, HttpServletResponse response);
 
+    void onInvalidateSession(HttpServletRequest request, HttpServletResponse response);
+
 }

@@ -70,7 +70,7 @@ public class SimpleSessionFilter implements Filter {
                 servletResponse,
                 sessionRepository,
                 getSessionTransaction());
-        SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse, sessionRepository);
+        SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse);
         servletRequest.setAttribute(ALREADY_VISITED_NAME, Boolean.TRUE);
         try {
             chain.doFilter(sessionRequest, sessionResponse);

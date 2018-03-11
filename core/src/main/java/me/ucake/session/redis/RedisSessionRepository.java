@@ -2,7 +2,6 @@ package me.ucake.session.redis;
 
 import me.ucake.session.Consts;
 import me.ucake.session.FlushMode;
-import me.ucake.session.web.Session;
 import me.ucake.session.web.SessionRepository;
 
 import java.util.Map;
@@ -38,5 +37,10 @@ public class RedisSessionRepository implements SessionRepository {
     @Override
     public FlushMode getFlushMode() {
         return flushMode;
+    }
+
+    @Override
+    public void removeSession(String sessionId) {
+        redisTemplate.delete(sessionIdKey(sessionId));
     }
 }

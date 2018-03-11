@@ -48,6 +48,13 @@ public class CookieBasedTransaction implements SessionTransaction {
         response.addCookie(cookie);
     }
 
+    @Override
+    public void onInvalidateSession(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie(COOKIE_NAME_SESSION, request.getRequestedSessionId());
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
     private String getPath(HttpServletRequest request) {
         if (this.cookiePath == null) {
             return request.getContextPath() + "/";

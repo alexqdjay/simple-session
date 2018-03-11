@@ -58,13 +58,17 @@ public class Session implements Serializable, HttpSession {
 
     private SessionRepository sessionRepository;
 
+    private SimpleSessionRequest bindRequest;
+
     public static Session createNew(ServletContext servletContext,
-                                    SessionRepository sessionRepository) {
+                                    SessionRepository sessionRepository,
+                                    SimpleSessionRequest request) {
         Session session = new Session();
         session.id = UUIDGen.gen();
         session.servletContext = servletContext;
         session.createTime = session.lastAccessTime = System.currentTimeMillis();
         session.isNew = true;
+        session.bindRequest = request;
         session.cached.put(FIELD_CREATE_TIME_NAME, session.createTime);
         session.cached.put(FIELD_LAST_ACCESS_TIME_NAME, session.lastAccessTime);
         session.cached.put(FIELD_MAX_INACTIVE_INTERVAL_NAME, session.maxInactiveInterval);
@@ -75,7 +79,8 @@ public class Session implements Serializable, HttpSession {
 
     public static Session restoreById(String sessionId,
                                       ServletContext servletContext,
-                                      SessionRepository sessionRepository) {
+                                      SessionRepository sessionRepository,
+                                      SimpleSessionRequest request) {
         Map<String, Object> attributes = sessionRepository.getSessionAttributesById(sessionId);
         if (attributes == null) {
             return null;
@@ -85,6 +90,7 @@ public class Session implements Serializable, HttpSession {
         session.lastAccessTime = System.currentTimeMillis();
         session.cached.put(FIELD_LAST_ACCESS_TIME_NAME, session.lastAccessTime);
         session.servletContext = servletContext;
+        session.bindRequest = request;
         session.attributes.putAll(attributes);
         session.fillField();
         session.setSessionRepository(sessionRepository);
@@ -202,7 +208,13 @@ public class Session implements Serializable, HttpSession {
     @Override
     public void invalidate() {
         checkState();
+        this.bindRequest.invalidateSession();
+        this.sessionRepository.removeSession(this.getId());
         this.invalidated = true;
+    }
+
+    public void commit() {
+        this.bindRequest.commitSession();
     }
 
     @Override
@@ -225,6 +237,10 @@ public class Session implements Serializable, HttpSession {
         if (this.getFlushMode() == FlushMode.LAZY) {
             return;
         }
+        this.saveToRepositoryImmediately();
+    }
+
+    protected void saveToRepositoryImmediately() {
         this.sessionRepository.saveAttributes(this.id, this.cached);
     }
 

@@ -14,4 +14,6 @@ public interface SessionRepository {
     void saveAttributes(String sessionId, Map<String, Object> attributes);
 
     FlushMode getFlushMode();
+
+    void removeSession(String sessionId);
 }

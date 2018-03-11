@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
  */
 public class SimpleSessionResponse extends HttpServletResponseWrapper {
 
-    SessionRepository sessionRepository;
+    private volatile boolean disableOnCommitted = false;
 
     /**
      * Constructs a response adaptor wrapping the given response.
@@ -16,8 +16,8 @@ public class SimpleSessionResponse extends HttpServletResponseWrapper {
      * @param response
      * @throws IllegalArgumentException if the response is null
      */
-    public SimpleSessionResponse(HttpServletResponse response, SessionRepository sessionRepository) {
+    public SimpleSessionResponse(HttpServletResponse response) {
         super(response);
-        this.sessionRepository = sessionRepository;
     }
+
 }

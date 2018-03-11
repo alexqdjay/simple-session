@@ -43,6 +43,13 @@ public class RedisTemplate {
         return valuesMap;
     }
 
+    public void delete(String key) {
+        this.execute(jedis -> {
+            jedis.del(keyEncode(key));
+            return null;
+        });
+    }
+
     public <T> T execute(RedisCallback<T> redisCallback) {
         try (Jedis jedis = jedisPool.getResource()) {
             return redisCallback.execute(jedis);
