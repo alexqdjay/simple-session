@@ -1,6 +1,5 @@
 package me.ucake.session.web;
 
-import me.ucake.session.core.UUIDGen;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
