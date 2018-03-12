@@ -8,7 +8,7 @@ import javax.servlet.http.HttpSession;
 /**
  * Created by alexqdjay on 2017/9/3.
  */
-public class CookieBasedTransaction implements SessionTransaction {
+public class CookieBasedSessionStrategy implements SessionStrategy {
 
     public static final String COOKIE_NAME_SESSION = "ssession";
 

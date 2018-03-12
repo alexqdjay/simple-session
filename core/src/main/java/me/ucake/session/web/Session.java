@@ -44,7 +44,7 @@ public class Session implements Serializable, HttpSession {
         }
     };
 
-    private String id;
+    protected String id;
     private long createTime;
     private long lastAccessTime;
     private int maxInactiveInterval = DEFAULT_MAX_INACTIVE_INTERVAL_SECONDS;

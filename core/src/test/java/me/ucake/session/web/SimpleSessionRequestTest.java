@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-import javax.xml.ws.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,7 +31,7 @@ public class SimpleSessionRequestTest {
     private MapSessionRepository sessionRepository;
     private MockHttpServletRequest mockRequest;
     private MockHttpServletResponse mockResponse;
-    private SessionTransaction mockSessionTransaction;
+    private SessionStrategy mockSessionStrategy;
     private SimpleSessionRequest request;
 
 
@@ -40,7 +39,7 @@ public class SimpleSessionRequestTest {
     public void setup() {
         setupRequest();
 
-        mockSessionTransaction = mock(SessionTransaction.class);
+        mockSessionStrategy = mock(SessionStrategy.class);
 
         sessionRepository = new MapSessionRepository();
 
@@ -283,7 +282,7 @@ public class SimpleSessionRequestTest {
         doInFilter((request, response) -> {
             request.getSession();
         });
-        assertThat(mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION)).isNotNull();
+        assertThat(mockResponse.getCookie(CookieBasedSessionStrategy.COOKIE_NAME_SESSION)).isNotNull();
 
         nextRequest();
 
@@ -292,7 +291,7 @@ public class SimpleSessionRequestTest {
             request.changeSessionId();
             assertThat(request.getSession().isNew()).isFalse();
         });
-        assertThat(mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION)).isNotNull();
+        assertThat(mockResponse.getCookie(CookieBasedSessionStrategy.COOKIE_NAME_SESSION)).isNotNull();
     }
 
     @Test
@@ -310,7 +309,7 @@ public class SimpleSessionRequestTest {
             request.getSession(false);
         });
 
-        Cookie cookie = mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION);
+        Cookie cookie = mockResponse.getCookie(CookieBasedSessionStrategy.COOKIE_NAME_SESSION);
         assertThat(cookie).isNull();
     }
 
@@ -511,23 +510,23 @@ public class SimpleSessionRequestTest {
 
     @Test
     public void test_onSessionNew() throws IOException, ServletException {
-        simpleSessionFilter.setSessionTransaction(mockSessionTransaction);
+        simpleSessionFilter.setSessionStrategy(mockSessionStrategy);
         doInFilter((request, response) -> {
             request.getSession();
         });
 
-        verify(mockSessionTransaction, times(1)).onNewSession(any(), any(), any());
+        verify(mockSessionStrategy, times(1)).onNewSession(any(), any(), any());
     }
 
     @Test
     public void test_onSessionInvalidate() throws IOException, ServletException {
-        simpleSessionFilter.setSessionTransaction(mockSessionTransaction);
+        simpleSessionFilter.setSessionStrategy(mockSessionStrategy);
         String[] ids = new String[1];
         doInFilter((request, response) -> {
             ids[0] = request.getSession().getId();
         });
         String id = ids[0];
-        when(mockSessionTransaction.getRequestedSessionId(any())).thenReturn(id);
+        when(mockSessionStrategy.getRequestedSessionId(any())).thenReturn(id);
 
         mockRequest = new MockHttpServletRequest();
         mockResponse = new MockHttpServletResponse();
@@ -535,25 +534,25 @@ public class SimpleSessionRequestTest {
             request.getSession().invalidate();
         });
 
-        verify(mockSessionTransaction, times(1)).onInvalidateSession(any(), any());
+        verify(mockSessionStrategy, times(1)).onInvalidateSession(any(), any());
     }
 
     @Test
     public void test_notInvokeInvalidate() throws IOException, ServletException {
-        simpleSessionFilter.setSessionTransaction(mockSessionTransaction);
+        simpleSessionFilter.setSessionStrategy(mockSessionStrategy);
         String[] ids = new String[1];
         doInFilter((request, response) -> {
             ids[0] = request.getSession().getId();
         });
         String id = ids[0];
-        when(mockSessionTransaction.getRequestedSessionId(any())).thenReturn(id);
+        when(mockSessionStrategy.getRequestedSessionId(any())).thenReturn(id);
 
         mockRequest = new MockHttpServletRequest();
         mockResponse = new MockHttpServletResponse();
         doInFilter((request, response) -> {
         });
 
-        verify(mockSessionTransaction, never()).onInvalidateSession(any(), any());
+        verify(mockSessionStrategy, never()).onInvalidateSession(any(), any());
     }
 
     @Test
@@ -620,7 +619,7 @@ public class SimpleSessionRequestTest {
     }
 
     private Cookie getSessionCookie() {
-        return mockResponse.getCookie(CookieBasedTransaction.COOKIE_NAME_SESSION);
+        return mockResponse.getCookie(CookieBasedSessionStrategy.COOKIE_NAME_SESSION);
     }
 
     private void setSessionCookie(String sessionId) {

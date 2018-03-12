@@ -7,7 +7,7 @@ import javax.servlet.http.HttpSession;
 /**
  * Created by alexqdjay on 2017/9/2.
  */
-public interface SessionTransaction {
+public interface SessionStrategy {
 
     String getRequestedSessionId(HttpServletRequest request);
 
