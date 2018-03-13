@@ -21,8 +21,7 @@ public class RedisSessionRepository implements SessionRepository {
 
     @Override
     public Map<String, Object> getSessionAttributesById(String sessionId) {
-        //TODO 补充getSessionById 实现
-        return null;
+        return redisTemplate.hmget(sessionIdKey(sessionId));
     }
 
     @Override

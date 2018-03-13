@@ -21,21 +21,25 @@ public class RedisTemplate {
 
 
     public void hmset(String key, Map<String, Object> map) {
-        Map<byte[], byte[]> hash = new HashMap<>();
-        // TODO null value process
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String k = entry.getKey();
-            Object v = entry.getValue();
-            hash.put(keyEncode(k), valueEncode(v));
+        Map<byte[], byte[]> values = new HashMap<>();
+        if (map != null) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                String k = entry.getKey();
+                Object v = entry.getValue();
+                values.put(keyEncode(k), valueEncode(v));
+            }
         }
         this.execute(jedis -> {
-            jedis.hmset(keyEncode(key), hash);
+            jedis.hmset(keyEncode(key), values);
             return null;
         });
     }
 
     public Map<String, Object> hmget(String key) {
         Map<byte[], byte[]> bytesMap = this.execute(jedis -> jedis.hgetAll(keyEncode(key)));
+        if (bytesMap == null) {
+            return null;
+        }
         Map<String, Object> valuesMap = new HashMap<>();
         for (Map.Entry<byte[], byte[]> entry : bytesMap.entrySet()) {
             valuesMap.put(keyDecode(entry.getKey()), valueDecode(entry.getValue()));
