@@ -32,10 +32,6 @@ public class SimpleSessionFilter implements Filter {
         this.sessionStrategy = sessionStrategy;
     }
 
-    public SessionRepository getSessionRepository() {
-        return sessionRepository;
-    }
-
     public void setSessionRepository(SessionRepository sessionRepository) {
         this.sessionRepository = sessionRepository;
     }

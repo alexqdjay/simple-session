@@ -53,11 +53,17 @@ public class SimpleSessionFilterTest {
             public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
                 targetRequest.set(request);
                 chain.doFilter(request, response);
+                Boolean visited = (Boolean) mockRequest.getAttribute("me.ucake.session.web.SimpleSessionFilter.VISITED");
+                assertThat(visited).isEqualTo(Boolean.TRUE);
             }
             @Override
             public void destroy() {
             }
         });
+
+        Boolean visited = (Boolean) mockRequest.getAttribute("me.ucake.session.web.SimpleSessionFilter.VISITED");
+
+        assertThat(visited).isNull();
 
         mockFilterChain.doFilter(mockRequest, mockResponse);
 
@@ -65,6 +71,18 @@ public class SimpleSessionFilterTest {
                 .isNull();
 
         assertThat(targetRequest.get()).isInstanceOf(SimpleSessionRequest.class);
+    }
+
+    @Test(expected = ServletException.class)
+    public void test_requestIsNull() throws IOException, ServletException {
+        filter.doFilter(null, null, null);
+    }
+
+    @Test
+    public void test_init() throws ServletException {
+        filter.init(null);
+
+        filter.destroy();
     }
 
 }
