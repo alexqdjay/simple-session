@@ -4,5 +4,20 @@
 
 ## quick start
 
+### 1. Spring boot
 
+**Step1.** Add `@EnableSimpleSession` on your Main Class
+
+
+```Java
+@SpringBootApplication
+@EnableSimpleSession
+public class MainRun {
+	...
+}
+```
+
+**Step2.** Config your properties
+
+simplesession.
 

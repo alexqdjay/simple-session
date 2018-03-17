@@ -1,6 +1,7 @@
 package me.ucake.session.samples.springmvc;
 
 import me.ucake.session.FlushMode;
+import me.ucake.session.config.boot.EnableSimpleSession;
 import me.ucake.session.jvm.MapSessionRepository;
 import me.ucake.session.web.SimpleSessionFilter;
 import org.springframework.boot.SpringApplication;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Bean;
  * Created by alexqdjay on 2017/8/20.
  */
 @SpringBootApplication
+@EnableSimpleSession
 public class AppMainRun {
 
     public static void main(String[] args) {
