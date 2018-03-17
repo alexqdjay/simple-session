@@ -4,6 +4,9 @@
 
 ## Quick Start
 
+如果你的项目是`SpringBoot`那么看下面`1. Spring boot`  
+如果你的项目是`SpringMVC`项目看下面`2. SpringMVC`
+
 ### 1. Spring boot
 
 **Step1.** Add `@EnableSimpleSession` on your Main Class
