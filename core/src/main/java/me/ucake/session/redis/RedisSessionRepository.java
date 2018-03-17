@@ -14,6 +14,10 @@ public class RedisSessionRepository implements SessionRepository {
     private RedisTemplate redisTemplate;
     private FlushMode flushMode;
 
+    public RedisSessionRepository(RedisTemplate redisTemplate) {
+        this(redisTemplate, FlushMode.LAZY);
+    }
+
     public RedisSessionRepository(RedisTemplate redisTemplate, FlushMode flushMode) {
         this.redisTemplate = redisTemplate;
         this.flushMode = flushMode;

@@ -19,6 +19,9 @@ public class RedisTemplate {
     private JedisPool jedisPool;
     private Serializer serializer = DEFAULT_SERIALIZER;
 
+    public RedisTemplate(JedisPool jedisPool) {
+        this.jedisPool = jedisPool;
+    }
 
     public void hmset(String key, Map<String, Object> map) {
         Map<byte[], byte[]> values = new HashMap<>();
