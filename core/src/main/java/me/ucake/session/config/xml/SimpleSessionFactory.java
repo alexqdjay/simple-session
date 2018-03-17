@@ -17,7 +17,9 @@ public class SimpleSessionFactory implements FactoryBean<SimpleSessionFilter>, I
 
     private JedisPool jedisPool;
 
-    private String strategy;
+    private String strategy = "cookie";
+
+    private String flushMode = "LAZY";
 
     private SessionRepository sessionRepository;
 
@@ -56,8 +58,8 @@ public class SimpleSessionFactory implements FactoryBean<SimpleSessionFilter>, I
             if (jedisPool == null) {
                 throw new IllegalArgumentException("jedisPool must not be null");
             }
-            FlushMode flushMode = FlushMode.valueOf(strategy);
-            sessionRepository = new RedisSessionRepository(new RedisTemplate(jedisPool), flushMode);
+            FlushMode fm = FlushMode.valueOf(flushMode);
+            sessionRepository = new RedisSessionRepository(new RedisTemplate(jedisPool), fm);
         }
     }
 }
