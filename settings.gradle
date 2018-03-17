@@ -16,4 +16,4 @@ include 'services:webservice'
 */
 
 rootProject.name = 'simple-session'
-include 'core', 'samples:springmvc'
+include 'core', 'samples:springboot'
