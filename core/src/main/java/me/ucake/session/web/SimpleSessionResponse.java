@@ -62,7 +62,6 @@ public class SimpleSessionResponse extends HttpServletResponseWrapper {
     }
 
     private void doOnResponseCommitted() {
-        doOnResponseCommitted();
         this.request.commitSession();
     }
 
