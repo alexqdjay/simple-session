@@ -45,6 +45,7 @@ public class CookieBasedSessionStrategy implements SessionStrategy {
         cookie.setSecure(this.isSecureCookie(request));
         cookie.setHttpOnly(this.useHttpOnlyCookie);
         cookie.setPath(getPath(request));
+        cookie.setMaxAge(Integer.MAX_VALUE);
         response.addCookie(cookie);
     }
 
