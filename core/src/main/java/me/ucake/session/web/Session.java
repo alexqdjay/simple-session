@@ -220,6 +220,9 @@ public class Session implements Serializable, HttpSession {
     }
 
     protected String changeSessionId() {
+        if (this.id != null) {
+            sessionRepository.removeSession(this.id);
+        }
         this.id = UUIDGen.gen();
         return this.id;
     }

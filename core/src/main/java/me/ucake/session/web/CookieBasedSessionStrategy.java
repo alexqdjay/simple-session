@@ -12,7 +12,7 @@ public class CookieBasedSessionStrategy implements SessionStrategy {
 
     public static final String COOKIE_NAME_SESSION = "ssession";
 
-    private Boolean useSecure = Boolean.TRUE;
+    private Boolean useSecure = Boolean.FALSE;
     private boolean useHttpOnlyCookie = true;
     private String cookiePath;
 

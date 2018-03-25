@@ -66,7 +66,7 @@ public class SimpleSessionFilter implements Filter {
                 servletResponse,
                 sessionRepository,
                 getSessionStrategy());
-        SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse);
+        SimpleSessionResponse sessionResponse = new SimpleSessionResponse(servletResponse, sessionRequest);
         servletRequest.setAttribute(ALREADY_VISITED_NAME, Boolean.TRUE);
         try {
             chain.doFilter(sessionRequest, sessionResponse);

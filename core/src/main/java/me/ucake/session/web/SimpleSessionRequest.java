@@ -18,6 +18,7 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
 
     private Boolean requestedSessionIdValid;
     private boolean requestedSessionIdInvalidate;
+    private volatile boolean committed = false;
 
     /**
      * Constructs a request object wrapping the given request.
@@ -116,6 +117,10 @@ public class SimpleSessionRequest extends HttpServletRequestWrapper {
     }
 
     public void commitSession() {
+        if (committed) {
+            return;
+        }
+        committed = true;
         Session session = getCurrentSession();
         if (session != null) {
             session.doCommitImmediately();
