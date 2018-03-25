@@ -13,14 +13,20 @@ public class RedisSessionRepository implements SessionRepository {
 
     private RedisTemplate redisTemplate;
     private FlushMode flushMode;
+    private int maxExpireSecond = 1800; // 默认过期时间30min
 
     public RedisSessionRepository(RedisTemplate redisTemplate) {
         this(redisTemplate, FlushMode.LAZY);
     }
 
     public RedisSessionRepository(RedisTemplate redisTemplate, FlushMode flushMode) {
+        this(redisTemplate, flushMode, 1800);
+    }
+
+    public RedisSessionRepository(RedisTemplate redisTemplate, FlushMode flushMode, int maxExpireSecond) {
         this.redisTemplate = redisTemplate;
         this.flushMode = flushMode;
+        this.maxExpireSecond = maxExpireSecond;
     }
 
     @Override

@@ -1,11 +1,13 @@
 package me.ucake.session.config.boot;
 
+import me.ucake.session.jvm.MapSessionRepository;
 import me.ucake.session.redis.RedisSessionRepository;
 import me.ucake.session.redis.RedisTemplate;
 import me.ucake.session.web.*;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -47,11 +49,17 @@ public class SimpleSessionConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(SessionRepository.class)
-    public RedisSessionRepository redisSessionRepository(JedisPool jedisPool) {
+    @ConditionalOnProperty(name = "simplesession.store", havingValue = "redis", matchIfMissing = true)
+    public SessionRepository redisSessionRepository(JedisPool jedisPool) {
         return new RedisSessionRepository(new RedisTemplate(jedisPool),
-                simpleSessionProperties.getFlushMode());
+                simpleSessionProperties.getFlushMode(), simpleSessionProperties.getMaxExpireSecond());
     }
+    @Bean
+    @ConditionalOnProperty(name = "simplesession.store", havingValue = "map", matchIfMissing = false)
+    public SessionRepository mapRepository() {
+        return new MapSessionRepository();
+    }
+
 
     private SessionStrategy sessionStrategy() {
         return SessionStrategy.valueOf(simpleSessionProperties.getStrategy());

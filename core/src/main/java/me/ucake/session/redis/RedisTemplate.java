@@ -2,6 +2,7 @@ package me.ucake.session.redis;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Pipeline;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ public class RedisTemplate {
         this.jedisPool = jedisPool;
     }
 
-    public void hmset(String key, Map<String, Object> map) {
+    public void hmset(String key, Map<String, Object> map, int expire) {
         Map<byte[], byte[]> values = new HashMap<>();
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
@@ -33,7 +34,13 @@ public class RedisTemplate {
             }
         }
         this.execute(jedis -> {
-            jedis.hmset(keyEncode(key), values);
+            Pipeline pipeline = jedis.pipelined();
+            byte[] keyBytes = keyEncode(key);
+            pipeline.hmset(keyBytes, values);
+            if (expire > 0) {
+                pipeline.expire(keyBytes, expire);
+            }
+            pipeline.sync();
             return null;
         });
     }

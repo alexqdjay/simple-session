@@ -11,7 +11,17 @@ public class SimpleSessionProperties {
 
     private FlushMode flushMode = FlushMode.LAZY;
     private String strategy = "cookie"; // cookie or header
+    private int maxExpireSecond = 1800;
+    private String store = "redis";     // redis or map
     private Redis redis;
+
+    public String getStore() {
+        return store;
+    }
+
+    public void setStore(String store) {
+        this.store = store;
+    }
 
     public FlushMode getFlushMode() {
         return flushMode;
@@ -35,6 +45,14 @@ public class SimpleSessionProperties {
 
     public void setRedis(Redis redis) {
         this.redis = redis;
+    }
+
+    public int getMaxExpireSecond() {
+        return maxExpireSecond;
+    }
+
+    public void setMaxExpireSecond(int maxExpireSecond) {
+        this.maxExpireSecond = maxExpireSecond;
     }
 
     public static class Redis {
