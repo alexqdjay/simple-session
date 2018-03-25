@@ -36,7 +36,7 @@ public class RedisSessionRepository implements SessionRepository {
 
     @Override
     public void saveAttributes(String sessionId, Map<String, Object> attributes) {
-        redisTemplate.hmset(sessionIdKey(sessionId), attributes);
+        redisTemplate.hmset(sessionIdKey(sessionId), attributes, maxExpireSecond);
     }
 
     private String sessionIdKey(String sessionId) {
