@@ -14,6 +14,7 @@ public class SimpleSessionProperties {
     private int maxExpireSecond = 1800;
     private String store = "redis";     // redis or map
     private Redis redis;
+    private String filterPath = "/*";
 
     public String getStore() {
         return store;
@@ -21,6 +22,14 @@ public class SimpleSessionProperties {
 
     public void setStore(String store) {
         this.store = store;
+    }
+
+    public String getFilterPath() {
+        return filterPath;
+    }
+
+    public void setFilterPath(String filterPath) {
+        this.filterPath = filterPath;
     }
 
     public FlushMode getFlushMode() {

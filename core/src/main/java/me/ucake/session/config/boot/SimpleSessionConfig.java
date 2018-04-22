@@ -75,7 +75,7 @@ public class SimpleSessionConfig {
     public FilterRegistrationBean filterRegistrationBean(SessionRepository sessionRepository) {
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
         filterRegistrationBean.setFilter(simpleSessionFilter(sessionRepository));
-        filterRegistrationBean.addUrlPatterns("/*");
+        filterRegistrationBean.addUrlPatterns(simpleSessionProperties.getFilterPath());
         filterRegistrationBean.setName("simpleSessionFilter");
         filterRegistrationBean.setOrder(1);
         return filterRegistrationBean;
