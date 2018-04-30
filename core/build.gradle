@@ -2,6 +2,7 @@
 
 
 dependencies {
+    compileOnly 'org.slf4j:slf4j-api:1.7.13'
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
     compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
     compileOnly group: 'org.springframework.boot', name: 'spring-boot-autoconfigure', version: '1.5.10.RELEASE'

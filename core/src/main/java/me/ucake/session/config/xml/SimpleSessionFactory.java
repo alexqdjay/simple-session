@@ -3,6 +3,7 @@ package me.ucake.session.config.xml;
 import me.ucake.session.FlushMode;
 import me.ucake.session.redis.RedisSessionRepository;
 import me.ucake.session.redis.RedisTemplate;
+import me.ucake.session.redis.Serializer;
 import me.ucake.session.web.SessionRepository;
 import me.ucake.session.web.SessionStrategy;
 import me.ucake.session.web.SimpleSessionFilter;
@@ -22,6 +23,8 @@ public class SimpleSessionFactory implements FactoryBean<SimpleSessionFilter>, I
     private String flushMode = "LAZY";
 
     private SessionRepository sessionRepository;
+
+    private Serializer serializer;
 
     @Override
     public SimpleSessionFilter getObject() throws Exception {
@@ -52,6 +55,10 @@ public class SimpleSessionFactory implements FactoryBean<SimpleSessionFilter>, I
         this.sessionRepository = sessionRepository;
     }
 
+    public void setSerializer(Serializer serializer) {
+        this.serializer = serializer;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         if (sessionRepository == null) {
@@ -59,7 +66,11 @@ public class SimpleSessionFactory implements FactoryBean<SimpleSessionFilter>, I
                 throw new IllegalArgumentException("jedisPool must not be null");
             }
             FlushMode fm = FlushMode.valueOf(flushMode);
-            sessionRepository = new RedisSessionRepository(new RedisTemplate(jedisPool), fm);
+            RedisTemplate redisTemplate = new RedisTemplate(jedisPool);
+            if (serializer != null) {
+                redisTemplate.setSerializer(serializer);
+            }
+            sessionRepository = new RedisSessionRepository(redisTemplate, fm);
         }
     }
 }

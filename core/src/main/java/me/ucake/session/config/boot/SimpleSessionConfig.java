@@ -3,6 +3,7 @@ package me.ucake.session.config.boot;
 import me.ucake.session.jvm.MapSessionRepository;
 import me.ucake.session.redis.RedisSessionRepository;
 import me.ucake.session.redis.RedisTemplate;
+import me.ucake.session.redis.Serializer;
 import me.ucake.session.web.*;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class SimpleSessionConfig {
 
     @Autowired
     private SimpleSessionProperties simpleSessionProperties;
+
+    @Autowired(required = false)
+    private Serializer serializer;
 
     @Bean
     @ConditionalOnMissingBean(JedisPool.class)
@@ -51,7 +55,11 @@ public class SimpleSessionConfig {
     @Bean
     @ConditionalOnProperty(name = "simplesession.store", havingValue = "redis", matchIfMissing = true)
     public SessionRepository redisSessionRepository(JedisPool jedisPool) {
-        return new RedisSessionRepository(new RedisTemplate(jedisPool),
+        RedisTemplate redisTemplate = new RedisTemplate(jedisPool);
+        if (serializer != null) {
+            redisTemplate.setSerializer(serializer);
+        }
+        return new RedisSessionRepository(redisTemplate,
                 simpleSessionProperties.getFlushMode(), simpleSessionProperties.getMaxExpireSecond());
     }
     @Bean
